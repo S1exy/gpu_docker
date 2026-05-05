@@ -49,7 +49,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ${{ secrets.REGISTRY_HOSTNAME || 'docker.io' }}/${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || secrets.REGISTRY_USERNAME }}/${{ secrets.REGISTRY_REPONAME || github.event.repository.name }}
+            ${{ secrets.REGISTRY_HOSTNAME || 'docker.io' }}/${{ secrets.REGISTRY_REPONAME || github.event.repository.name }}
           flavor: |
             latest=auto
           # generate Docker tags based on the following events/attributes
