@@ -23,6 +23,7 @@ RUN if [ -f /etc/apt/sources.list ]; then \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
+    openssh-client \
     sudo \
     passwd \
     git \
@@ -38,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     psmisc \
     iproute2 \
+    net-tools \
     ca-certificates \
     tzdata \
     locales \
@@ -65,7 +67,7 @@ RUN printf "channels:\n  - defaults\nshow_channel_urls: true\ndefault_channels:\
 
 RUN python -m pip install --upgrade pip setuptools wheel && \
     python -m pip install --no-cache-dir \
-    numpy \
+    "numpy<2" \
     scipy \
     pandas \
     scikit-learn \
@@ -106,13 +108,8 @@ RUN sed -ri 's/^#?Port .*/Port 22/' /etc/ssh/sshd_config && \
     sed -ri 's/^#?PubkeyAuthentication .*/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
     sed -ri 's/^#?UsePAM .*/UsePAM no/' /etc/ssh/sshd_config
 
-RUN printf '#!/usr/bin/env bash\nset -e\nmkdir -p /var/run/sshd /root/.ssh\nchmod 700 /root/.ssh\nssh-keygen -A\nif [ -n "${SSH_PUBLIC_KEY:-}" ]; then\n  echo "${SSH_PUBLIC_KEY}" >> /root/.ssh/authorized_keys\n  chmod 600 /root/.ssh/authorized_keys\n  echo "SSH public key has been added."\nfi\nif [ -n "${SSH_PASSWORD:-}" ]; then\n  echo "root:${SSH_PASSWORD}" | chpasswd\n  echo "Root SSH password has been set from SSH_PASSWORD."\nelse\n  echo "WARNING: SSH_PASSWORD is not set. Password SSH login may not work."\nfi\n/usr/sbin/sshd\nexec "$@"\n' > /usr/local/bin/start-container.sh && \
-    chmod +x /usr/local/bin/start-container.sh
-
 RUN python -c "import torch, cv2, numpy, tqdm, PIL; print('torch:', torch.__version__); print('torch cuda:', torch.version.cuda); print('cv2:', cv2.__version__); print('numpy:', numpy.__version__); print('PIL:', PIL.__version__)"
 
 EXPOSE 22
 
-ENTRYPOINT ["/usr/local/bin/start-container.sh"]
-
-CMD ["/bin/bash", "-lc", "sleep infinity"]
+CMD ["/bin/bash"]
